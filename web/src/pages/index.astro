@@ -92,27 +92,8 @@ import Layout from "../layouts/Layout.astro";
 
   <script>
     import { ABOUT, ACH, CONTACT, PROJECTS, SKILLS, TABS, TREE } from "../data";
-
-    /* ═══════════════ helpers ═══════════════ */
-    const $ = (s: string): HTMLElement | null => document.querySelector(s);
-    const h = (s: string) =>
-      String(s).replace(
-        /[&<>"']/g,
-        (c) =>
-          ({
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            '"': "&quot;",
-            "'": "&#39;",
-          })[c],
-      );
-    const fmtTime = (d: Date) => d.toTimeString().slice(0, 8);
-    const smooth = () =>
-      matchMedia("(prefers-reduced-motion: reduce)").matches
-        ? "auto"
-        : "smooth";
-
+    import {$,h,fmtTime,smooth,} from '../shared'
+    
     /* ═══════════════ data — single source of truth (pages, grep, cat all read this) ═══════════════ */
 
     /* ═══════════════ state ═══════════════ */
@@ -978,29 +959,7 @@ import Layout from "../layouts/Layout.astro";
       );
     }
 
-    /* ═══════════════ clock ═══════════════ */
-    function buch() {
-      try {
-        return new Date().toLocaleTimeString("en-GB", {
-          timeZone: "Europe/Bucharest",
-        });
-      } catch (e) {
-        return fmtTime(new Date());
-      }
-    }
-    setInterval(() => {
-      const now = new Date(),
-        t = fmtTime(now);
-      $("#tbClock").textContent = t;
-      $("#sbClock").textContent = t;
-      $("#tbDate").textContent = now.toLocaleDateString("en-GB", {
-        weekday: "short",
-        day: "2-digit",
-        month: "short",
-      });
-      const z = pageEl.querySelector("#tzLive");
-      if (z) z.textContent = buch();
-    }, 1000);
+    
 
     /* ═══════════════ console clear + boot ═══════════════ */
     $("#clearBtn").addEventListener("click", () => {
