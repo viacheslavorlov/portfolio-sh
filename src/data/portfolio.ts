@@ -179,10 +179,10 @@ export interface Tab {
 }
 
 export const TABS: Tab[] = [
-  { id: 'about', path: '/about/', file: 'about.md', tag: ABOUT.tag },
-  { id: 'projects', path: '/projects/', file: 'projects/', tag: '2 закрытых · 2 WIP' },
-  { id: 'skills', path: '/skills/', file: 'skills.json', tag: 'самооценка, близкая к бенчмарку' },
-  { id: 'contact', path: '/contacts/', file: 'contact.txt', tag: 'как меня найти' },
+  { id: 'about', path: '/portfolio-sh/about/', file: 'about.md', tag: ABOUT.tag },
+  { id: 'projects', path: '/portfolio-sh/projects/', file: 'projects/', tag: '2 закрытых · 2 WIP' },
+  { id: 'skills', path: '/portfolio-sh/skills/', file: 'skills.json', tag: 'самооценка, близкая к бенчмарку' },
+  { id: 'contact', path: '/portfolio-sh/contacts/', file: 'contact.txt', tag: 'как меня найти' },
 ];
 
 export const THEMES = ['amber', 'phosphor', 'paper'];
@@ -191,14 +191,14 @@ export const THEMES = ['amber', 'phosphor', 'paper'];
 
 export const getProject = (id: string) => PROJECTS.find(p => p.id === id);
 
-export const projectPath = (p: Project) => `/projects/${p.id}/`;
+export const projectPath = (p: Project) => `/portfolio-sh/projects/${p.id}/`;
 
 export const tabByPath = (pathname: string) => {
   const path = pathname.replace(/\/+$/, '');
-  if (path === '' || path === '/about') return TABS[0];
-  if (path === '/projects' || path.startsWith('/projects/')) return TABS[1];
-  if (path === '/skills') return TABS[2];
-  if (path === '/contacts') return TABS[3];
+  if (path === '' || path === '/portfolio-sh/about') return TABS[0];
+  if (path === '/portfolio-sh/projects' || path.startsWith('/portfolio-sh/projects/')) return TABS[1];
+  if (path === '/portfolio-sh/skills') return TABS[2];
+  if (path === '/portfolio-sh/contacts') return TABS[3];
   return null;
 };
 

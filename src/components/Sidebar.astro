@@ -9,13 +9,13 @@ const children = [...PROJECTS].sort((a, b) => a.id.localeCompare(b.id));
   <div class="side-sec">
     <div class="sec-label">explorer</div>
     <div class="tree">
-      <a class:list={['tnode', { on: active === 'about' }]} href="/">
+      <a class:list={['tnode', { on: active === 'about' }]} href="/portfolio-sh/">
         <span class="tg">├─</span><span class="tn">about.md</span><span class="tm">2kB</span>
       </a>
-      <a class:list={['tnode', { on: active === 'projects' }]} href="/projects/">
+      <a class:list={['tnode', { on: active === 'projects' }]} href="/portfolio-sh/projects/">
         <span class="tg">├─</span><span class="tn">projects/</span><span class="tm">{children.length + 1}</span>
       </a>
-      <a class="tnode" href="/projects/#ach">
+      <a class="tnode" href="/portfolio-sh/projects/#ach">
         <span class="tg">│ ├─</span><span class="tn">achievements.log</span><span class="tm">{6}</span>
       </a>
       {children.map((p, i) => (

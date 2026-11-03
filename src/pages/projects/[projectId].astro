@@ -19,7 +19,7 @@ const next = PROJECTS[(index + 1) % PROJECTS.length];
   <PageHead file={`projects/${project.name}`} tag={project.tag} />
 
   <div class="pintro">
-    <a href="/projects/" aria-label="назад к списку проектов">cd ..</a> · буфер <span class="acc">{project.name}</span> [{project.st}] · {project.year}
+    <a href="/portfolio-sh/projects/" aria-label="назад к списку проектов">cd ..</a> · буфер <span class="acc">{project.name}</span> [{project.st}] · {project.year}
   </div>
 
   <p class="pdesc-detail" set:html={project.desc} />

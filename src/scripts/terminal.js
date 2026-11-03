@@ -338,7 +338,7 @@ function hireSeq() {
   if (location.pathname.replace(/\/+$/, '') === '/contacts') return;
   log('out', '[sudo] пароль для visitor: ********');
   setTimeout(() => log('ok', 'доступ разрешён — маршрутизирую запрос'), 500);
-  setTimeout(() => { log('ok', 'открываю contact.txt …'); location.href = '/contacts/'; }, 1200);
+  setTimeout(() => { log('ok', 'открываю contact.txt …'); location.href = '/portfolio-sh/contacts/'; }, 1200);
 }
 
 /* ═══════════════ оверлеи ═══════════════ */
