@@ -1,79 +1,52 @@
 ---
+import { PROJECTS, projectPath } from '../data/portfolio';
 
+interface Props { active: string }
+const { active } = Astro.props;
+const children = [...PROJECTS].sort((a, b) => a.id.localeCompare(b.id));
 ---
-
 <aside class="sidebar">
   <div class="side-sec">
     <div class="sec-label">explorer</div>
-    <div class="tree" id="tree"></div>
+    <div class="tree">
+      <a class:list={['tnode', { on: active === 'about' }]} href="/">
+        <span class="tg">├─</span><span class="tn">about.md</span><span class="tm">2kB</span>
+      </a>
+      <a class:list={['tnode', { on: active === 'projects' }]} href="/projects/">
+        <span class="tg">├─</span><span class="tn">projects/</span><span class="tm">{children.length + 1}</span>
+      </a>
+      <a class="tnode" href="/projects/#ach">
+        <span class="tg">│ ├─</span><span class="tn">achievements.log</span><span class="tm">{6}</span>
+      </a>
+      {children.map((p, i) => (
+        <a class="tnode" href={projectPath(p)} aria-current={Astro.url.pathname === projectPath(p) ? 'page' : undefined}>
+          <span class="tg">│ {i === children.length - 1 ? '└─' : '├─'}</span>
+          <span class="tn">{p.name}</span><span class="tm st-{p.st}">{p.st}</span>
+        </a>
+      ))}
+      <a class:list={['tnode', { on: active === 'skills' }]} href="/skills/">
+        <span class="tg">├─</span><span class="tn">skills.json</span><span class="tm">1kB</span>
+      </a>
+      <a class:list={['tnode', { on: active === 'contact' }]} href="/contacts/">
+        <span class="tg">└─</span><span class="tn">contact.txt</span><span class="tm">1kB</span>
+      </a>
+    </div>
   </div>
   <div class="side-sec">
     <div class="sec-label">session</div>
     <div class="sess">
-      <div class="s1">viacheslav orlov</div>
-      <div class="d2">senior full-stack</div>
-      <div class="d2">5y · remote · UTC+3</div>
-      <div class="grn s1">● open to work</div>
+      <div class="s1">viacheslav</div>
+      <div class="d2">fullstack-разработчик</div>
+      <div class="d2">4 г. 4 мес. · Новгород · UTC+3</div>
+      <div class="grn s1">● доступен для найма</div>
     </div>
   </div>
   <div class="side-sec">
     <div class="sec-label">theme</div>
-    <div class="theme-row" id="themeRow"></div>
+    <div class="theme-row" id="themeRow">
+      <button class="thm" data-thm="amber">amber</button>
+      <button class="thm" data-thm="phosphor">phosphor</button>
+      <button class="thm" data-thm="paper">paper</button>
+    </div>
   </div>
 </aside>
-
-<script>
-  import { TREE } from "../data";
-  import { $, setTheme } from "../shared";
-import { THEMES } from "../shared/const";
-  import { state } from "../shared/state";
-  const treeEl = $("#tree")!;
-
-  /* ═══════════════ sidebar tree + theme ═══════════════ */
-  function buildTree() {
-    let out = "";
-    TREE.forEach((n, i) => {
-      const last = i === TREE.length - 1;
-      out += `<a href="/${n.nav}" class="tnode" data-nav="${n.nav}"><span class="tg">${last ? "└─" : "├─"}</span>
-      <span class="tn">${n.n}</span><span class="tm ${n.cls || ""}">${n.m}</span></a>`;
-      (n.kids || []).forEach((k, j) => {
-        const lk = j === (n?.kids?.length || 0) - 1;
-        const attr = k.ach ? 'data-ach="1"' : `data-proj="${k.proj}"`;
-        out += `<a href="/${n.nav}" class="tnode" ${attr}><span class="tg">│ ${lk ? "└─" : "├─"}</span>
-        <span class="tn">${k.n}</span><span class="tm ${k.cls || ""}">${k.m}</span></a>`;
-      });
-    });
-    treeEl.innerHTML = out;
-  }
-//   treeEl.addEventListener("click", (e) => {
-//     const b = e.target.closest(".tnode");
-//     if (!b) return;
-//     if (b.dataset.nav) return go(b.dataset.nav);
-//     if (b.dataset.ach) return go("projects", { anchor: "ach" });
-//     if (b.dataset.proj) return openProject(b.dataset.proj);
-//   });
-
-  function buildThemeRow() {
-    $("#themeRow").innerHTML = THEMES.map(
-      (t) =>
-        `<button class="thm ${t === state.theme ? "on" : ""}" data-thm="${t}">${t}</button>`,
-    ).join("");
-  }
-  $("#themeRow").addEventListener("click", (e) => {
-    const b = e.target.closest("[data-thm]");
-    if (b) setTheme(b.dataset.thm);
-  });
-  
-  
-  const saved = (() => {
-    try {
-      return localStorage.getItem("pf-theme");
-    } catch (e) {
-      return null;
-    }
-  })();
-  buildTree();
-  buildThemeRow();
-  if (saved && THEMES.includes(saved)) setTheme(saved, { silent: true });
-//   go("about", { silent: true });
-</script>

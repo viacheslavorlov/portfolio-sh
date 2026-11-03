@@ -1,0 +1,21 @@
+---
+import Terminal from '../layouts/Terminal.astro';
+import PageHead from '../components/PageHead.astro';
+---
+<Terminal file="404" title="404 · vi-dev · portfolio.sh">
+  <PageHead file="404" tag="ENOENT — буфер не найден" />
+
+  <div class="prose">
+    <p><span class="red">cat: {Astro.url.pathname}: нет такого файла</span></p>
+    <p>Запрошенного буфера нет в этом дереве. <span class="d2">(exit 1)</span></p>
+  </div>
+
+  <div class="dl">
+    <div class="dr"><span class="k dim">ls:</span><span class="v">
+      <a href="/about/">about.md</a> · <a href="/projects/">projects/</a> · <a href="/skills/">skills.json</a> · <a href="/contacts/">contact.txt</a>
+    </span></div>
+    <div class="dr"><span class="k dim">попробуйте:</span><span class="v">
+      <a href="/about/">cd ..</a> — или введите <span class="acc">help</span> в консоли ниже
+    </span></div>
+  </div>
+</Terminal>

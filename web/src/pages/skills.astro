@@ -1,0 +1,36 @@
+---
+import Terminal from '../layouts/Terminal.astro';
+import PageHead from '../components/PageHead.astro';
+import { SKILLS, TABS } from '../data/portfolio';
+
+const tag = TABS.find(t => t.id === 'skills')!.tag;
+const bar = (p: number) => ({
+  filled: '█'.repeat(Math.round(p / 10)),
+  rest: '░'.repeat(10 - Math.round(p / 10)),
+});
+const navyk = (n: number) => {
+  const d10 = n % 10, d100 = n % 100;
+  if (d10 === 1 && d100 !== 11) return 'навык';
+  if (d10 >= 2 && d10 <= 4 && (d100 < 12 || d100 > 14)) return 'навыка';
+  return 'навыков';
+};
+---
+<Terminal tab="skills" file="skills.json" title="skills.json · vi-dev · portfolio.sh">
+  <PageHead file="skills.json" tag={tag} />
+
+  {SKILLS.groups.map(g => (
+    <div>
+      <div class="h2"><span class="hh">##</span> {g.name} <span class="h2r d2">{g.rows.length} {navyk(g.rows.length)}</span></div>
+      {g.rows.map(([n, p, y]) => (
+        <div class="meter" data-si={`${n} — ${p}% · ${y}y (${g.name})`} title="клик — запись в лог" role="button" tabindex="0">
+          <span class="mn">{n}</span>
+          <span class="mb"><span class="bf">{bar(p).filled}</span><span class="br">{bar(p).rest}</span></span>
+          <span class="mp">{p}%</span><span class="my">{y}y</span>
+        </div>
+      ))}
+    </div>
+  ))}
+
+  <div class="learn"><span class="acc">▮ изучаю:</span> {SKILLS.learning}</div>
+  <div class="snote"># шкалы — самооценка; бенчмарки — по запросу</div>
+</Terminal>

@@ -1,0 +1,38 @@
+---
+import Terminal from '../../layouts/Terminal.astro';
+import PageHead from '../../components/PageHead.astro';
+import { getProject, projectPath, PROJECTS } from '../../data/portfolio';
+
+export function getStaticPaths() {
+  return PROJECTS.map(project => ({
+    params: { projectId: project.id },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const index = PROJECTS.findIndex(p => p.id === project.id);
+const prev = PROJECTS[(index + PROJECTS.length - 1) % PROJECTS.length];
+const next = PROJECTS[(index + 1) % PROJECTS.length];
+---
+<Terminal tab="projects" file={`projects/${project.name}`} title={`projects/${project.name} · vi-dev · portfolio.sh`}>
+  <PageHead file={`projects/${project.name}`} tag={project.tag} />
+
+  <div class="pintro">
+    <a href="/projects/" aria-label="назад к списку проектов">cd ..</a> · буфер <span class="acc">{project.name}</span> [{project.st}] · {project.year}
+  </div>
+
+  <p class="pdesc-detail" set:html={project.desc} />
+
+  <div class="pd">
+    <span class="k">role</span><span class="v">{project.role}</span>
+    <span class="k">stack</span><span class="v">{project.stack}</span>
+    <span class="k">impact</span><span class="vi">{project.impact}</span>
+    <span class="k">year</span><span class="v dim">{project.year}</span>
+  </div>
+
+  <div class="plinks">
+    <a class="pnav" href={projectPath(prev)} aria-label="предыдущий проект">← {prev.name}</a>
+    <a class="pnav" href={projectPath(next)} aria-label="следующий проект">{next.name} →</a>
+  </div>
+</Terminal>

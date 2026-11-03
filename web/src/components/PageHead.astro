@@ -1,0 +1,11 @@
+---
+interface Props { file: string; tag: string }
+const { file, tag } = Astro.props;
+---
+<div class="ph">
+  <span class="d2">#</span>
+  <b class="pf">{file}</b>
+  <span class="meta" id="metaLine"></span>
+</div>
+<div class="pt">{tag}</div>
+<div class="rule"></div>

@@ -1,0 +1,36 @@
+---
+import Terminal from '../layouts/Terminal.astro';
+import PageHead from '../components/PageHead.astro';
+import { ACH, projectPath, PROJECTS, TABS } from '../data/portfolio';
+
+const projects = [...PROJECTS].sort((a, b) => a.id.localeCompare(b.id));
+const tag = TABS.find(t => t.id === 'projects')!.tag;
+---
+<Terminal tab="projects" file="projects/" title="projects/ · vi-dev · portfolio.sh">
+  <PageHead file="projects/" tag={tag} />
+
+  <div class="pintro">▸ открыть проект, чтобы прочístь его буфер — или введите <span class="acc">open velesrp</span> ниже… проще кликнуть</div>
+
+  {projects.map(p => (
+    <article class="proj">
+      <a class="prow" href={projectPath(p)} aria-label={`open ${p.name}`}>
+        <span class="pc">▸</span>
+        <span class="pn">{p.name}</span>
+        <span class="pt2">{p.tag}</span>
+        <span class="ps">{p.short}</span>
+        <span class="pst st-{p.st}">[{p.st}]</span>
+      </a>
+    </article>
+  ))}
+
+  <section id="ach">
+    <div class="h2"><span class="hh">##</span> achievements.log <span class="h2r d2">сначала новые</span></div>
+    {ACH.map(a => (
+      <div class="ach-row">
+        <span class="a1">*</span><span class="a2">{a.h}</span>
+        <span class="a3">{a.y}</span><span class="v">{a.t}</span>
+      </div>
+    ))}
+    <div class="ach-foot">{ACH.length} записей · 2023 → 2026 · контекст — в проектах выше</div>
+  </section>
+</Terminal>

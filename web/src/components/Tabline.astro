@@ -1,0 +1,16 @@
+---
+import { TABS } from '../data/portfolio';
+
+interface Props { active: string }
+const { active } = Astro.props;
+---
+<nav class="tabline" aria-label="pages">
+  <div class="tabs">
+    {TABS.map((t, i) => (
+      <a class:list={['tab', { on: t.id === active }]} href={t.path} aria-current={t.id === active ? 'page' : undefined}>
+        <i>{i + 1}</i>{t.file}
+      </a>
+    ))}
+  </div>
+  <span class="tabfill">:e <файл> · j/k скролл · ? помощь</span>
+</nav>

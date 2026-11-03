@@ -1,0 +1,27 @@
+---
+import Terminal from '../layouts/Terminal.astro';
+import PageHead from '../components/PageHead.astro';
+import { CONTACT, TABS } from '../data/portfolio';
+
+const tag = TABS.find(t => t.id === 'contact')!.tag;
+---
+<Terminal tab="contact" file="contact.txt" title="contact.txt · vi-dev · portfolio.sh" description="Контакты: локация, таймзона, занятость. Великий Новгород, UTC+3.">
+  <PageHead file="contact.txt" tag={tag} />
+
+  <div class="cbox">
+    <div class="dr"><span class="k dim">статус: </span><span class="v grn">{CONTACT.status}</span></div>
+    {CONTACT.rows.map(r => (
+      <div class="dr">
+        <span class="k dim">{r.k}: </span>
+        <span class="v">
+          {r.v}
+          {r.tzlive && <span id="tzLive">--:--:--</span>}
+          {r.copy && <button class="copy" data-copy={r.v} title={`copy ${r.k}`}>[copy]</button>}
+          {r.ask && <button class="copy" data-cv title="запросить резюме">[ask]</button>}
+        </span>
+      </div>
+    ))}
+  </div>
+
+  <div class="cnote">{CONTACT.note}</div>
+</Terminal>

@@ -1,42 +1,37 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import Terminal from '../layouts/Terminal.astro';
+import PageHead from '../components/PageHead.astro';
+import { ABOUT } from '../data/portfolio';
 ---
+<Terminal tab="about" file="about.md" title="about.md · vi-dev · portfolio.sh">
+  <PageHead file="about.md" tag={ABOUT.tag} />
 
-<Layout>
-  <script>
-    import { ABOUT } from "../data";
-    import { h } from "../shared";
-
-    const phead = (file: string, tag: string) => `
-  <div class="ph"><span class="d2">#</span> <b class="pf">${file}</b><span class="meta" id="metaLine"></span></div>
-  <div class="pt">${tag}</div><div class="rule"></div>`;
-
-    function renderAbout() {
-      return (
-        phead("about.md", ABOUT.tag) +
-        `
   <div class="fm">
     <div class="fmd">---</div>
-    ${ABOUT.fm.map(([k, v]) => `<div class="fr"><span class="k">${k}:</span><span class="v">${k === "status" ? `<span class="grn">●</span> open to work` : h(v)}</span></div>`).join("")}
+    {ABOUT.fm.map(([k, v]) => (
+      <div class="fr">
+        <span class="k">{k}:</span>
+        <span class="v">{k === 'статус' ? <span><span class="grn">●</span> {v}</span> : v}</span>
+      </div>
+    ))}
     <div class="fmd">---</div>
   </div>
-  <div class="prose">${ABOUT.paras.map((p) => `<p>${p}</p>`).join("")}</div>
-  <div class="h2"><span class="hh">##</span> principles</div>
-  <div class="dl pr">${ABOUT.principles
-    .map(
-      ([a, b]) =>
-        `<div class="dr"><span class="k">${a}</span><span class="v dim">${b}</span></div>`,
-    )
-    .join("")}</div>
-  <div class="h2"><span class="hh">##</span> now<span class="h2r d2">updated 2025-05</span></div>
-  <div class="dl">${ABOUT.now
-    .map(
-      ([k, v]) =>
-        `<div class="dr"><span class="k dim">${k}:</span><span class="v">${h(v)}</span></div>`,
-    )
-    .join("")}</div>`
-      );
-    }
-    renderAbout()
-  </script>
-</Layout>
+
+  <div class="prose">
+    {ABOUT.paras.map(p => <p set:html={p} />)}
+  </div>
+
+  <div class="h2"><span class="hh">##</span> принципы</div>
+  <div class="dl pr">
+    {ABOUT.principles.map(([a, b]) => (
+      <div class="dr"><span class="k">{a}</span><span class="v dim">{b}</span></div>
+    ))}
+  </div>
+
+  <div class="h2"><span class="hh">##</span> сейчас <span class="h2r d2">обновлено 10.2026</span></div>
+  <div class="dl">
+    {ABOUT.now.map(([k, v]) => (
+      <div class="dr"><span class="k dim">{k}:</span><span class="v" set:html={v} /></div>
+    ))}
+  </div>
+</Terminal>

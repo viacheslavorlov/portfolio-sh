@@ -1,13 +1,17 @@
----
-
----
-
 <section class="console">
   <div class="console-head">
     <span class="sec-label">console</span>
-    <span class="ch-dim">· output &amp; activity</span>
+    <span class="ch-dim">· вывод и активность</span>
     <button class="linkbtn" id="clearBtn">[clear]</button>
   </div>
-  <div class="console-body" id="consoleBody" role="log" aria-live="polite">
-  </div>
+  <div class="console-body" id="consoleBody" role="log" aria-live="polite"></div>
 </section>
+
+<div class="cmdrow" id="cmdrow" title="командная строка — введите help">
+  <span class="prompt">❯</span>
+  <div class="cmd-wrap" id="cmdWrap">
+    <span class="mirror" id="mirror"></span><span class="caret" aria-hidden="true"></span>
+    <input id="cmd" autocomplete="off" spellcheck="false" aria-label="command input">
+  </div>
+  <span class="cmd-hint" id="cmdHint">введите help — или нажмите ? для шорткатов · мышка тоже работает</span>
+</div>
