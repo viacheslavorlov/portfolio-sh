@@ -8,4 +8,5 @@ export default defineConfig({
     },
     compressHTML: true,
     output: 'static',
+    base: 'portfolio-sh/'
 });
