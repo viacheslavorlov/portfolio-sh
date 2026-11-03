@@ -17,7 +17,7 @@ const tag = TABS.find(t => t.id === 'contact')!.tag;
           {r.v}
           {r.tzlive && <span id="tzLive">--:--:--</span>}
           {r.copy && <button class="copy" data-copy={r.v} title={`copy ${r.k}`}>[copy]</button>}
-          {r.ask && <button class="copy" data-cv title="запросить резюме">[ask]</button>}
+          {r.ask && <a href="mailto:viacheslavorlov@gmail.com" class="copy" data-cv title="запросить резюме">[ask]</a>}
         </span>
       </div>
     ))}

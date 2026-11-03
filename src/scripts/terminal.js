@@ -208,10 +208,10 @@ function exec(raw) {
     case 'cd': cmdCd(arg); break;
     case 'cat': cmdCat(arg); break;
     case 'open': case 'e': cmdOpen(arg); break;
-    case 'about': nav('/about'); break;
-    case 'projects': nav('/projects'); break;
-    case 'skills': nav('/skills'); break;
-    case 'contact': case 'contacts': nav('/contacts'); break;
+    case 'about': nav('/portfolio-sh/about'); break;
+    case 'projects': nav('/portfolio-sh/projects'); break;
+    case 'skills': nav('/portfolio-sh/skills'); break;
+    case 'contact': case 'contacts': nav('/portfolio-sh/contacts'); break;
     case 'whoami':
       outs(['fullstack-разработчик — Великий Новгород · UTC+3',
         '4 года 4 месяца · node.js / bun / postgres — полный цикл',
@@ -256,36 +256,36 @@ function cmdLs(a) {
 
 function cmdCd(a) {
   a = (a || '').replace(/\/+$/, '').toLowerCase();
-  if (!a || a === '~' || a === '.' || a === '..' || a === 'home') return nav('/about');
-  if (a === 'about') return nav('/about');
-  if (a === 'projects') return nav('/projects');
-  if (a === 'skills') return nav('/skills');
-  if (a === 'contact' || a === 'contacts') return nav('/contacts');
+  if (!a || a === '~' || a === '.' || a === '..' || a === 'home') return nav('/portfolio-sh/');
+  if (a === 'about') return nav('/portfolio-sh/');
+  if (a === 'projects') return nav('/portfolio-sh/projects');
+  if (a === 'skills') return nav('/portfolio-sh/skills');
+  if (a === 'contact' || a === 'contacts') return nav('/portfolio-sh/contacts');
   let m;
   if ((m = a.match(/^projects\/([a-z0-9-]+)$/))) {
     const p = getProject(m[1]);
-    return p ? nav(`/projects/${p.id}/`) : log('err', `cd: нет такого каталога: ${h(a)}`);
+    return p ? nav(`/portfolio-sh/projects/${p.id}/`) : log('err', `cd: нет такого каталога: ${h(a)}`);
   }
-  if (a === 'achievements' || a === 'achievements.log') return nav('/projects/#ach');
+  if (a === 'achievements' || a === 'achievements.log') return nav('/portfolio-sh/projects/#ach');
   const p = getProject(a);
-  if (p) return nav(`/projects/${p.id}/`);
+  if (p) return nav(`/portfolio-sh/projects/${p.id}/`);
   log('err', `cd: нет такого каталога: ${h(a)}`);
 }
 
 function cmdOpen(a) {
   if (!a) return log('err', 'open что? — например `open velesrp`');
   a = a.toLowerCase();
-  if (a === 'ach' || a === 'achievements' || a === 'achievements.log') return nav('/projects/#ach');
-  if (a === 'projects' || a === 'projects/') return nav('/projects');
+  if (a === 'ach' || a === 'achievements' || a === 'achievements.log') return nav('/portfolio-sh/projects/#ach');
+  if (a === 'projects' || a === 'projects/') return nav('/portfolio-sh/projects');
   let m;
   if ((m = a.match(/^projects\/([a-z0-9-]+)$/))) {
     const p = getProject(m[1]);
-    return p ? nav(`/projects/${p.id}/`) : log('err', `буфер не найден: ${h(a)} (см. ls)`);
+    return p ? nav(`/portfolio-sh/projects/${p.id}/`) : log('err', `буфер не найден: ${h(a)} (см. ls)`);
   }
   const t = TABS.find(t => t.id === a || t.id + 's' === a);
   if (t) return nav(t.path);
   const p = getProject(a);
-  if (p) return nav(`/projects/${p.id}/`);
+  if (p) return nav(`/portfolio-sh/projects/${p.id}/`);
   log('err', `буфер не найден: ${h(a)} (см. ls)`);
 }
 
@@ -335,7 +335,7 @@ function cmdCow(m) {
 }
 
 function hireSeq() {
-  if (location.pathname.replace(/\/+$/, '') === '/contacts') return;
+  if (location.pathname.replace(/\/+$/, '') === '/portfolio-sh/contacts') return;
   log('out', '[sudo] пароль для visitor: ********');
   setTimeout(() => log('ok', 'доступ разрешён — маршрутизирую запрос'), 500);
   setTimeout(() => { log('ok', 'открываю contact.txt …'); location.href = '/portfolio-sh/contacts/'; }, 1200);

@@ -98,12 +98,12 @@ body[data-theme="paper"] {
   left: 0;
   right: 0;
   top: 0;
-  height: 34vh;
+  height: 16vh;
   background: linear-gradient(180deg,
     transparent,
-    var(--crt-band-a, rgba(255, 255, 255, .10)) 35%,
-    var(--crt-band-b, rgba(255, 255, 255, .16)) 50%,
-    var(--crt-band-a, rgba(255, 255, 255, .10)) 65%,
+    var(--crt-band-a, rgba(255, 255, 255, .05)) 35%,
+    var(--crt-band-b, rgba(255, 255, 255, .09)) 50%,
+    var(--crt-band-a, rgba(255, 255, 255, .05)) 65%,
     transparent);
   transform: translateY(-40vh);
   animation: crt-roll 12s linear infinite;
