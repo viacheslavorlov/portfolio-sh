@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>advega · portfolio.sh</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ───────────────────────── themes ───────────────────────── */
+:root, body[data-theme="amber"]{
+  --bg0:#0e0d0b; --bg1:#151310; --bg2:#1e1b17;
+  --bd:#2f2a23; --bd-soft:#26221c;
+  --fg:#e9e2d6; --dim:#a79e8e; --dim2:#847c6f;
+  --accent:#ffb454; --accent-ink:#241a06;
+  --green:#9ccb84; --red:#e07a72; --teal:#8fbfae;
+}
+body[data-theme="phosphor"]{
+  --bg0:#070d09; --bg1:#0a130d; --bg2:#122016;
+  --bd:#1f3a28; --bd-soft:#183021;
+  --fg:#c9f2d5; --dim:#7fae8e; --dim2:#5f8f70;
+  --accent:#4ee08a; --accent-ink:#04130a;
+  --green:#7fe8b2; --red:#ff8f80; --teal:#9fe3c4;
+}
+body[data-theme="phosphor"]::after{ /* CRT scanlines, this theme only */
+  content:""; position:fixed; inset:0; z-index:80; pointer-events:none;
+  background:repeating-linear-gradient(0deg, rgba(2,8,4,.28) 0 1px, transparent 1px 3px);
+}
+body[data-theme="paper"]{
+  --bg0:#efece4; --bg1:#f6f3ec; --bg2:#e5e1d5;
+  --bd:#d3cdbc; --bd-soft:#ddd8cb;
+  --fg:#292620; --dim:#6f6a5e; --dim2:#8b8577;
+  --accent:#c2571f; --accent-ink:#fff6ee;
+  --green:#587d3c; --red:#b3402e; --teal:#4a8273;
+}
+
+/* ───────────────────────── base ───────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg0); color:var(--fg);
+  font:13px/1.55 "JetBrains Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+  overflow:hidden;
+}
+::selection{background:var(--accent);color:var(--accent-ink)}
+:focus-visible{outline:1px dashed var(--accent);outline-offset:2px}
+button{font:inherit;border:none;background:none;cursor:pointer;color:inherit;border-radius:0}
+.dim{color:var(--dim)} .d2{color:var(--dim2)} .acc{color:var(--accent)}
+.grn{color:var(--green)} .tl{color:var(--teal)} .red{color:var(--red)}
+.pane,.console-body,.sidebar{scrollbar-width:thin;scrollbar-color:var(--bd) transparent}
+.pane::-webkit-scrollbar,.console-body::-webkit-scrollbar,.sidebar::-webkit-scrollbar{width:10px;height:10px}
+.pane::-webkit-scrollbar-thumb,.console-body::-webkit-scrollbar-thumb,.sidebar::-webkit-scrollbar-thumb{background:var(--bd)}
+.pane::-webkit-scrollbar-thumb:hover,.console-body::-webkit-scrollbar-thumb:hover{background:var(--dim2)}
+
+/* ───────────────────────── app frame ───────────────────────── */
+.app{height:100dvh;display:flex;flex-direction:column}
+body.pre .app>*{opacity:0;transform:translateY(8px)}
+.app>*{transition:opacity .35s ease,transform .35s ease}
+.app>*:nth-child(1){transition-delay:.03s}.app>*:nth-child(2){transition-delay:.09s}
+.app>*:nth-child(3){transition-delay:.15s}.app>*:nth-child(4){transition-delay:.21s}
+.app>*:nth-child(5){transition-delay:.27s}.app>*:nth-child(6){transition-delay:.33s}
+
+/* topbar */
+.topbar{flex:none;height:36px;display:flex;align-items:center;gap:10px;padding:0 14px;
+  border-bottom:1px solid var(--bd);background:var(--bg1);font-size:12px}
+.blink{color:var(--accent);font-weight:700;animation:blink 1.15s infinite}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+.topbar .tb-mid{color:var(--dim2)}
+.topbar .tb-right{margin-left:auto;display:flex;gap:14px;color:var(--dim)}
+
+/* tabline — vim style */
+.tabline{flex:none;display:flex;align-items:stretch;height:30px;border-bottom:1px solid var(--bd);
+  background:var(--bg1);overflow-x:auto;scrollbar-width:none}
+.tabline::-webkit-scrollbar{display:none}
+.tabs{display:flex;align-items:stretch;flex:none}
+.tab{display:flex;align-items:center;gap:8px;padding:0 13px;color:var(--dim);white-space:nowrap;font-size:12.5px}
+.tab i{font-style:normal;color:var(--dim2)}
+.tab:hover{color:var(--fg)}
+.tab.on{background:var(--accent);color:var(--accent-ink);font-weight:700;box-shadow:0 1px 0 0 var(--accent)}
+.tab.on i{color:var(--accent-ink);opacity:.65}
+.tabfill{flex:1;display:flex;align-items:center;justify-content:flex-end;padding-right:14px;
+  color:var(--dim2);font-size:11px;white-space:nowrap}
+
+/* mid split */
+.mid{flex:1;min-height:0;display:flex;overflow:hidden}
+
+/* ───────────────────────── sidebar ───────────────────────── */
+.sidebar{width:236px;flex:none;overflow-y:auto;background:var(--bg1);border-right:1px solid var(--bd)}
+.side-sec{border-bottom:1px solid var(--bd-soft)}
+.sec-label{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim2);
+  padding:9px 12px 7px;border-bottom:1px solid var(--bd-soft)}
+.tree{padding:6px 8px 12px;font-size:12.5px;line-height:1.9}
+.tnode{width:100%;display:grid;grid-template-columns:4ch minmax(0,1fr) auto;align-items:baseline;
+  text-align:left;padding:1px 6px;color:var(--fg)}
+.tnode:hover{background:var(--bg2)}
+.tnode .tg{color:var(--dim2)}
+.tnode .tn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tnode .tm{color:var(--dim2);font-size:10px;margin-left:10px}
+.tm.st-prod{color:var(--green)} .tm.st-oss{color:var(--teal)} .tm.st-wip{color:var(--dim2)}
+.tnode.on{background:var(--bg2)}
+.tnode.on .tn{color:var(--accent);font-weight:700}
+.sess{padding:10px 12px 12px;font-size:12px;line-height:1.8}
+.sess .s1{color:var(--fg);font-weight:700}
+.theme-row{display:flex;gap:4px;padding:10px 12px 14px;font-size:12px}
+.thm{color:var(--dim);padding:2px 7px}
+.thm:hover{color:var(--fg)}
+.thm.on{color:var(--accent);font-weight:700;background:var(--bg2)}
+
+/* ───────────────────────── content pane ───────────────────────── */
+.pane{flex:1;min-width:0;overflow-y:auto;padding:18px 28px 60px}
+.col{max-width:850px;margin:0 auto}
+.tildes{color:var(--bd);white-space:pre;user-select:none;margin-top:26px;line-height:1.6}
+.flashsec,.proj.flash,.cline.fresh{animation:cflash 1s}
+@keyframes cflash{0%{background:var(--bg2)}}
+@keyframes cflash2{0%{background:color-mix(in srgb,var(--accent) 15%,transparent)}}
+
+/* page header */
+.ph{display:flex;align-items:baseline;gap:8px}
+.pf{color:var(--accent);font-weight:700}
+.ph .meta{margin-left:auto;color:var(--dim2);font-size:11px}
+.pt{color:var(--dim2);font-size:12px;margin-top:2px}
+.rule{height:1px;background:var(--bd-soft);margin:14px 0 18px}
+.h2{display:flex;align-items:baseline;gap:10px;margin:28px 0 10px;font-weight:700}
+.h2 .hh{color:var(--dim2);font-weight:400}
+.h2r{margin-left:auto;font-weight:400;font-size:11px}
+.fm{margin:16px 0;padding:12px 16px;border:1px solid var(--bd-soft);background:var(--bg1);
+  font-size:12.5px;line-height:1.8}
+.fmd{color:var(--dim2)}
+.fm .fr,.dl .dr{display:grid;grid-template-columns:11ch 1fr;gap:0 14px}
+.fm .fr .k,.dl .dr .k{color:var(--dim)}
+.prose p{margin:12px 0;max-width:72ch}
+.dl .dr{padding:2px 0}
+.dl .dr .k{color:var(--dim)}
+.pr .dr{grid-template-columns:16ch 1fr}
+.pr .dr .k{color:var(--fg);font-weight:700}
+.pr .dr .v,.principles .v{color:var(--dim)}
+
+/* projects */
+.pintro{color:var(--dim2);font-size:12px;margin:4px 0 10px}
+.proj{margin:2px 0;padding-left:10px;border-left:2px solid transparent}
+.proj.open{border-left-color:var(--accent)}
+.prow{display:grid;grid-template-columns:2ch auto minmax(0,1fr) auto auto;gap:0 12px;
+  align-items:baseline;width:100%;text-align:left;padding:6px 8px}
+.prow:hover{background:var(--bg2)}
+.pc{color:var(--accent);font-weight:700}
+.pn{color:var(--fg);font-weight:700}
+.proj.open .pn{color:var(--accent)}
+.prow .pt2{color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+.prow .ps{color:var(--dim2);font-size:11px;white-space:nowrap}
+.pst{font-size:11px;white-space:nowrap}
+.pst.st-prod{color:var(--green)} .pst.st-oss{color:var(--teal)} .pst.st-wip{color:var(--dim2)}
+.pbody{display:grid;grid-template-rows:0fr;transition:grid-template-rows .15s ease}
+.proj.open .pbody{grid-template-rows:1fr}
+.pinner{overflow:hidden;min-height:0}
+.pdesc{margin:6px 0 12px;padding-left:16px;max-width:70ch;color:var(--fg)}
+.pd{display:grid;grid-template-columns:12ch 1fr;gap:6px 16px;margin:4px 0 12px;padding-left:16px}
+.pd .k{color:var(--dim)}
+.pd .v{color:var(--fg)}
+.pd .vi{color:var(--accent);font-weight:700}
+.ach-row{display:grid;grid-template-columns:2ch 9ch 6ch 1fr;gap:0 12px;padding:2px 8px}
+.ach-row:hover{background:var(--bg2)}
+.ach-row .a1{color:var(--accent)}
+.ach-row .a2{color:var(--teal)}
+.ach-row .a3{color:var(--dim2)}
+.ach-foot{color:var(--dim2);font-size:11px;margin-top:8px;padding-left:8px}
+
+/* skills */
+.meter{display:grid;grid-template-columns:15ch 1fr 5ch 5ch;gap:0 14px;align-items:baseline;
+  padding:2px 8px;cursor:pointer}
+.meter:hover{background:var(--bg2)}
+.meter .mn{color:var(--fg)}
+.meter .bf{color:var(--accent)}
+.meter .br{color:var(--bd)}
+.meter .mp{font-weight:700;text-align:right}
+.meter .my{color:var(--dim2);text-align:right}
+.learn{margin:26px 0 6px;font-weight:500}
+.snote{color:var(--dim2);font-size:12px;margin-top:4px}
+
+/* contact */
+.cbox{margin:16px 0;padding:12px 16px;border:1px solid var(--bd-soft);background:var(--bg1);
+  font-size:12.5px;line-height:2}
+.copy{border:1px solid var(--bd);color:var(--dim);font-size:11px;padding:1px 9px;margin-left:12px}
+.copy:hover{border-color:var(--accent);color:var(--accent)}
+.copy.copied{border-color:var(--green);color:var(--green)}
+.cnote{color:var(--dim2);font-size:12px;margin-top:10px}
+
+/* ───────────────────────── console ───────────────────────── */
+.console{flex:none;border-top:1px solid var(--bd);background:var(--bg0)}
+.console-head{display:flex;align-items:center;gap:10px;padding:5px 12px 3px;font-size:10px;
+  letter-spacing:.16em;text-transform:uppercase}
+.console-head .sec-label{border:none;padding:0;color:var(--dim2)}
+.console-head .ch-dim{letter-spacing:0;text-transform:none;color:var(--bd);font-size:11px}
+.linkbtn{color:var(--dim);font-size:11px;letter-spacing:0;text-transform:none;padding:2px 4px}
+.linkbtn:hover{color:var(--accent)}
+.console-body{height:96px;overflow-y:auto;padding:2px 0 6px}
+.cline{display:grid;grid-template-columns:56px 14px 1fr;column-gap:10px;align-items:baseline;
+  padding:0 12px;font-size:12px;line-height:1.55}
+.cline .lt{color:var(--dim2);font-size:11px}
+.cline .lx{white-space:pre-wrap;word-break:break-word}
+.k-cmd .lp{color:var(--accent)} .k-cmd .lx{color:var(--fg);font-weight:500}
+.k-sys .lp{color:var(--dim2)} .k-sys .lx{color:var(--dim)}
+.k-out .lp{color:var(--dim2)} .k-out .lx{color:var(--dim)}
+.k-ok .lp,.k-ok .lx{color:var(--green)}
+.k-err .lp,.k-err .lx{color:var(--red)}
+.k-raw{display:block;padding:0 12px 0 80px;white-space:pre;color:var(--dim);font-size:12px;line-height:1.5}
+
+/* ───────────────────────── command line ───────────────────────── */
+.cmdrow{flex:none;display:flex;align-items:center;gap:12px;height:44px;padding:0 14px;
+  border-top:1px solid var(--bd);background:var(--bg1);cursor:text}
+.prompt{color:var(--accent);font-weight:700;font-size:14px}
+.cmd-wrap{position:relative;display:flex;align-items:center;height:100%;flex:0 1 720px;
+  font-size:14px;min-width:120px}
+.mirror{white-space:pre;color:var(--fg)}
+.caret{display:inline-block;width:.6ch;height:1.15em;margin-left:1px;flex:none;
+  background:var(--dim2);opacity:.4;animation:blink 1.15s infinite}
+body.cmd-on .caret{background:var(--accent);opacity:1}
+#cmd{position:absolute;inset:0;opacity:0;border:none;outline:none;background:none;
+  color:transparent;caret-color:transparent;font-size:16px;cursor:text}
+#cmd::selection{background:transparent}
+.cmd-hint{flex:1;color:var(--dim2);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.cmd-on .cmd-hint{display:none}
+
+/* ───────────────────────── statusbar ───────────────────────── */
+.statusbar{flex:none;display:flex;align-items:center;gap:14px;height:30px;padding:0 12px;
+  border-top:1px solid var(--bd);background:var(--bg1);font-size:11px}
+.mode{min-width:62px;text-align:center;background:var(--bg2);color:var(--dim);
+  padding:3px 0;font-weight:700;letter-spacing:.12em;font-size:10px}
+body.cmd-on .mode{background:var(--accent);color:var(--accent-ink)}
+.sb-file{color:var(--dim)}
+.sb-keys{flex:1;text-align:center;color:var(--dim2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-right{margin-left:auto;display:flex;gap:14px;white-space:nowrap}
+.sb-right .d2{color:var(--dim2)}
+
+/* ───────────────────────── overlay ───────────────────────── */
+.overlay{display:none;position:fixed;inset:0;z-index:50;background:rgba(10,8,5,.6);
+  align-items:center;justify-content:center;padding:20px}
+.overlay.open{display:flex}
+.dialog{width:min(880px,94vw);max-height:80vh;display:flex;flex-direction:column;
+  background:var(--bg1);border:1px solid var(--bd);outline:1px solid var(--bd);outline-offset:3px;
+  box-shadow:0 22px 70px rgba(0,0,0,.55)}
+.dlg-head{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--bd);
+  font-size:12.5px}
+.dlg-head b{color:var(--accent)}
+.dlg-head .dlg-close{margin-left:auto}
+.dlg-body{padding:16px 18px;overflow-y:auto}
+.help-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 40px}
+.hc{display:grid;grid-template-columns:15ch 1fr;gap:2px 12px;font-size:12.5px}
+.hc b{color:var(--accent);font-weight:700}
+.hc span{color:var(--dim)}
+.h2.sm{margin:4px 0 10px}
+.help-note{margin-top:16px;color:var(--dim2);font-size:12px}
+.nf{display:grid;grid-template-columns:auto 1fr;gap:8px 36px}
+.nf-art{color:var(--accent);font-size:12px;line-height:1.5;font-family:inherit}
+.nf-i{display:grid;grid-template-columns:9ch 1fr;gap:3px 14px;font-size:12.5px}
+.nf-i .k{color:var(--dim2)}
+.nf-i .v{color:var(--fg)}
+
+/* ───────────────────────── motion & responsive ───────────────────────── */
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+@media (max-width:1100px){ .prow .ps{display:none} }
+@media (max-width:940px){ .sb-keys,.tabfill{display:none} }
+@media (max-width:880px){
+  .sidebar{display:none}
+  .prow{grid-template-columns:2ch auto auto}
+  .prow .pt2{display:none}
+  .prow .ps{display:none}
+  .pane{padding:14px 14px 48px}
+  .console-body{height:84px}
+  .help-grid{grid-template-columns:1fr}
+  .nf{grid-template-columns:1fr}
+}
+@media (max-width:700px){
+  #sbTrace{display:none}
+  .cmd-hint{display:none}
+  .meter{grid-template-columns:13ch 1fr 5ch}
+  .meter .my{display:none}
+  .cline{grid-template-columns:48px 1fr}
+  .cline .lp{display:none}
+  .k-raw{padding-left:12px}
+}
+</style>
+</head>
+<body data-theme="amber" class="pre">
+<div class="app">
+
+  <header class="topbar">
+    <span class="blink" aria-hidden="true">▮</span>
+    <b>advega</b><span class="dim">@portfolio.sh</span>
+    <span class="d2 tb-mid">v2.1 · full-stack</span>
+    <span class="tb-right">
+      <span class="d2" id="tbDate">—</span>
+      <span class="dim" id="tbClock">--:--:--</span>
+    </span>
+  </header>
+
+  <nav class="tabline" aria-label="pages">
+    <div class="tabs" id="tabs">
+      <button class="tab" data-page="about"><i>1</i>about.md</button>
+      <button class="tab" data-page="projects"><i>2</i>projects/</button>
+      <button class="tab" data-page="skills"><i>3</i>skills.json</button>
+      <button class="tab" data-page="contact"><i>4</i>contact.txt</button>
+    </div>
+    <span class="tabfill">:e &lt;file&gt; · j/k scroll · ? help</span>
+  </nav>
+
+  <div class="mid">
+    <aside class="sidebar">
+      <div class="side-sec">
+        <div class="sec-label">explorer</div>
+        <div class="tree" id="tree"></div>
+      </div>
+      <div class="side-sec">
+        <div class="sec-label">session</div>
+        <div class="sess">
+          <div class="s1">adrián vega</div>
+          <div class="d2">senior full-stack</div>
+          <div class="d2">7y · remote · UTC+2</div>
+          <div class="grn s1">● open to work</div>
+        </div>
+      </div>
+      <div class="side-sec">
+        <div class="sec-label">theme</div>
+        <div class="theme-row" id="themeRow"></div>
+      </div>
+    </aside>
+
+    <main class="pane" id="pane">
+      <div class="col">
+        <div id="page"></div>
+        <div class="tildes" aria-hidden="true">~
+~
+~
+~
+~</div>
+      </div>
+    </main>
+  </div>
+
+  <section class="console">
+    <div class="console-head">
+      <span class="sec-label">console</span>
+      <span class="ch-dim">· output &amp; activity</span>
+      <button class="linkbtn" id="clearBtn">[clear]</button>
+    </div>
+    <div class="console-body" id="consoleBody" role="log" aria-live="polite"></div>
+  </section>
+
+  <div class="cmdrow" id="cmdrow" title="command line — type help">
+    <span class="prompt">❯</span>
+    <div class="cmd-wrap" id="cmdWrap">
+      <span class="mirror" id="mirror"></span><span class="caret" aria-hidden="true"></span>
+      <input id="cmd" autocomplete="off" spellcheck="false" aria-label="command input">
+    </div>
+    <span class="cmd-hint" id="cmdHint">type help — or press ? for shortcuts · mouse works too</span>
+  </div>
+
+  <footer class="statusbar">
+    <span class="mode" id="sbMode">NORMAL</span>
+    <span class="sb-file" id="sbFile">about.md</span>
+    <span class="sb-keys">: cmd · j/k scroll · 1-4 tabs · t theme · ? help</span>
+    <span class="sb-right">
+      <span class="acc" id="sbTheme">amber</span>
+      <span class="dim" id="sbClock">--:--:--</span>
+      <span class="d2" id="sbTrace">trace 1a16a8b7</span>
+    </span>
+  </footer>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="dialog" role="dialog" aria-modal="true">
+    <div class="dlg-head">
+      <span class="d2">┌</span><b id="dlgTitle">help</b><span class="d2" id="dlgSub"></span>
+      <button class="linkbtn dlg-close" id="dlgClose">[esc] close</button>
+    </div>
+    <div class="dlg-body" id="dlgBody"></div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════ helpers ═══════════════ */
+const $ = s => document.querySelector(s);
+const h = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtTime = d => d.toTimeString().slice(0,8);
+const smooth = () => matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+
+/* ═══════════════ data — single source of truth (pages, grep, cat all read this) ═══════════════ */
+const ABOUT = {
+  tag:'who i am, minus the buzzwords',
+  fm:[['name','Adrián Vega'],['role','senior full-stack developer'],['location','Bucharest · remote (UTC+2)'],
+      ['experience','7+ years · 40+ releases'],['status','● open to work']],
+  paras:[
+    `I build products end to end — from the first schema migration to the last loading skeleton. Over the last seven years I've shipped SaaS platforms, internal tools and open-source libraries, usually as the person bridging "we need it yesterday" and "it must not fall over in production".`,
+    `TypeScript everywhere, Go where it counts, Postgres underneath. I care about small honest interfaces, p95s under 100 ms, tests that fail loudly, and deploys that are boring. When I'm not shipping I'm building TUIs nobody asked for — this portfolio included.`],
+  principles:[
+    ['ship small','trunk-based, feature-flagged — every change reversible within a minute'],
+    ['latency is a feature','every user path gets a budget; perf regressions fail CI'],
+    ['boring tech, exciting products','novel where it matters, proven everywhere else'],
+    ['measured or it didn\'t happen','dashboards before deadlines, always']],
+  now:[['building','ledgerline v2 — multi-currency, EU e-invoicing (EN 16931)'],
+       ['learning','Rust · WebGL shaders'],
+       ['reading','Designing Data-Intensive Applications — 3rd pass']]
+};
+
+const PROJECTS = [
+  {id:'ledgerline', name:'ledgerline', st:'prod', short:'TS · Next · tRPC · PG', year:'2021 → now',
+   tag:'invoicing & expenses for EU freelancers',
+   desc:`Multi-tenant invoicing with EU e-invoicing (EN 16931), bank reconciliation over PSD2, and a PDF pipeline that renders 40k documents a month. Postgres row-level security keeps tenants apart; tRPC keeps types honest end to end.`,
+   stack:'TypeScript, Next.js, tRPC, Postgres (RLS), Redis, Stripe',
+   role:'lead full-stack · team of 5', impact:'40k users · €12M processed / yr · 99.95% uptime'},
+  {id:'pulseboard', name:'pulseboard', st:'oss', short:'Go · ClickHouse · WS', year:'2023 → now',
+   tag:'self-hosted observability for teams that outgrew free tiers',
+   desc:`Metrics, traces and log tails from a single binary. Agents push over HTTP/UDP, dashboards live as code in YAML, and the whole thing runs happily on a 2-core VPS. Built it because my homelab deserved better than five Grafana tabs.`,
+   stack:'Go, ClickHouse, React, WebSocket, systemd',
+   role:'creator & maintainer', impact:'1.2k stars · 58 contributors'},
+  {id:'dispatchr', name:'dispatchr', st:'prod', short:'Node · Redis · K8s', year:'2022 → 2024',
+   tag:'fulfillment orchestration for mid-size e-commerce',
+   desc:`Routes orders across 12 warehouses with SLA-aware queues, idempotent retries and a replayable event log. Held p95 under 50 ms through three Black Fridays — the third one was almost relaxing.`,
+   stack:'Node, Redis streams, RabbitMQ, Kubernetes, Terraform',
+   role:'full-stack · 2-person core team', impact:'2.4M orders / yr · p95 48 ms · 0 lost orders since v1.2'},
+  {id:'formforge', name:'formforge', st:'oss', short:'TS · JSON Schema', year:'2023 → now',
+   tag:'schema-first form builder — no drag, no drop',
+   desc:`JSON Schema in, accessible React forms out — live validation, 4.9 kB runtime. Powers ledgerline's onboarding; the API is boring on purpose.`,
+   stack:'TypeScript, JSON Schema, Monaco, vitest',
+   role:'author', impact:'2.1M npm downloads · 4.9 kB core'},
+  {id:'syncroom', name:'syncroom', st:'wip', short:'TS · Yjs · WebRTC', year:'2025',
+   tag:'pair-programming rooms with no server in the data path',
+   desc:`CRDT-backed shared editing plus voice over WebRTC; only signaling ever touches a server. Prototype stage — sync RTT is already 12 ms between continents.`,
+   stack:'TypeScript, Yjs, WebRTC',
+   role:'solo experiment', impact:'prototype · 12 ms cross-Atlantic sync'}
+];
+
+const ACH = [
+  {h:'a1f93c2', y:'2024', t:'HackBucharest — 1st place (ledgerline prototype)'},
+  {h:'8c41e0d', y:'2024', t:'dispatchr p95: 320 ms → 48 ms'},
+  {h:'5b90ffe', y:'2024', t:'speaker — "Ship Fast, Safely", DevOps Bucharest'},
+  {h:'3e77aa0', y:'2023', t:'pulseboard crosses 1k GitHub stars'},
+  {h:'c19d4b1', y:'2023', t:'AWS Solutions Architect — Associate'},
+  {h:'6d20a3f', y:'2022', t:'first €1M quarter processed through ledgerline'}
+];
+
+const SKILLS = { learning:'Rust · WebGL shaders', groups:[
+  {name:'frontend', rows:[['TypeScript',95,7],['React',92,6],['Next.js',88,4],['CSS & motion',85,7],['Vue',64,2]]},
+  {name:'backend',  rows:[['Node.js',93,7],['PostgreSQL',90,6],['Redis',85,5],['Go',82,3],['GraphQL',78,4]]},
+  {name:'ops',      rows:[['Docker',88,6],['CI/CD · GH Actions',86,5],['AWS',80,4],['Kubernetes',74,3],['Terraform',68,2]]},
+  {name:'practices',rows:[['testing · vitest/pw',87,5],['DX tooling',84,5],['observability',78,4],['security · OWASP',72,3]]}
+]};
+
+const CONTACT = {
+  rows:[
+    {k:'email',    v:'hello@avega.dev',        copy:true},
+    {k:'github',   v:'github.com/avega',       copy:true},
+    {k:'location', v:'Bucharest, RO'},
+    {k:'timezone', v:'UTC+2 · local <span id="tzLive">--:--:--</span>', live:true},
+    {k:'response', v:'< 24h — usually much faster'},
+    {k:'cv',       v:'on request <button class="copy" data-cv title="ask for the CV">[ask]</button>'}
+  ],
+  status:'● open to senior full-stack / platform roles — remote or Bucharest',
+  note:'# no crypto recruiters. everything else: yes, please.'
+};
+
+const TREE = [
+  {nav:'about',   n:'about.md',   m:'2kB', cls:''},
+  {nav:'projects',n:'projects/',  m:'6',   cls:'', kids:[
+    {ach:1,        n:'achievements.log', m:'6',    cls:''},
+    {proj:'dispatchr', n:'dispatchr',    m:'prod', cls:'st-prod'},
+    {proj:'formforge', n:'formforge',    m:'oss',  cls:'st-oss'},
+    {proj:'ledgerline',n:'ledgerline',   m:'prod', cls:'st-prod'},
+    {proj:'pulseboard',n:'pulseboard',   m:'oss',  cls:'st-oss'},
+    {proj:'syncroom',  n:'syncroom',     m:'wip',  cls:'st-wip'}
+  ]},
+  {nav:'skills',  n:'skills.json',m:'1kB', cls:''},
+  {nav:'contact', n:'contact.txt', m:'1kB', cls:''}
+];
+
+const TABS = [
+  {id:'about',   file:'about.md',   tag:ABOUT.tag},
+  {id:'projects',file:'projects/',  tag:'4 in the wild · 1 in the lab'},
+  {id:'skills',  file:'skills.json',tag:'self-assessed, benchmark-adjacent'},
+  {id:'contact', file:'contact.txt',tag:'the fastest route is email'}
+];
+
+/* ═══════════════ state ═══════════════ */
+const state = {
+  page:'about', theme:'amber', open:new Set(['ledgerline']),
+  bootAt:Date.now(), hiring:false
+};
+const hist = []; let hIdx = -1, gg = false;
+
+/* ═══════════════ DOM refs ═══════════════ */
+const cmd=$('#cmd'), mirror=$('#mirror'), pane=$('#pane'), pageEl=$('#page'),
+      conBody=$('#consoleBody'), treeEl=$('#tree'), tabsEl=$('#tabs'),
+      overlay=$('#overlay'), dlgTitle=$('#dlgTitle'), dlgSub=$('#dlgSub'), dlgBody=$('#dlgBody');
+
+/* ═══════════════ console ═══════════════ */
+const entries = [];
+function log(kind, text){
+  entries.push({t:fmtTime(new Date()), kind, text});
+  if (entries.length > 250) entries.shift();
+  conBody.innerHTML = entries.map(e => e.kind === 'raw'
+    ? `<div class="cline k-raw">${e.text}</div>`
+    : `<div class="cline k-${e.kind}"><span class="lt">${e.t}</span><span class="lp">${
+        e.kind==='cmd'?'❯':e.kind==='sys'?'▸':e.kind==='ok'?'✓':e.kind==='err'?'✗':' '
+      }</span><span class="lx">${e.text}</span></div>`).join('');
+  conBody.scrollTop = conBody.scrollHeight;
+  const last = conBody.lastElementChild;
+  if (last) last.classList.add('fresh');
+}
+function outs(lines){ lines.forEach(l => log('out', l)); }
+
+/* ═══════════════ grep / cat corpus (built from the same data) ═══════════════ */
+const CORPUS = [];
+(function buildCorpus(){
+  const put = (f, t) => CORPUS.push({f, t});
+  put('about.md', ABOUT.tag);
+  ABOUT.fm.forEach(([k,v]) => put('about.md', `${k}: ${v}`));
+  ABOUT.paras.forEach(p => put('about.md', p));
+  ABOUT.principles.forEach(([a,b]) => put('about.md', `${a} — ${b}`));
+  ABOUT.now.forEach(([k,v]) => put('about.md', `${k}: ${v}`));
+  ACH.forEach(a => put('projects/achievements.log', `${a.y} · ${a.t}`));
+  PROJECTS.forEach(p => {
+    const f = 'projects/' + p.id;
+    put(f, `${p.name} — ${p.tag}`); put(f, p.desc);
+    put(f, `stack: ${p.stack}`); put(f, `role: ${p.role}`);
+    put(f, `impact: ${p.impact}`); put(f, `year: ${p.year}`);
+  });
+  SKILLS.groups.forEach(g => g.rows.forEach(([n,p,y]) =>
+    put('skills.json', `${n} — ${p}% · ${y}y (${g.name})`)));
+  put('skills.json', `learning: ${SKILLS.learning}`);
+  CONTACT.rows.forEach(r => put('contact.txt', `${r.k}: ${r.v.replace(/<[^>]+>/g,'')}`));
+  put('contact.txt', CONTACT.status); put('contact.txt', CONTACT.note);
+})();
+
+/* ═══════════════ page renderers ═══════════════ */
+const phead = (file, tag) => `
+  <div class="ph"><span class="d2">#</span> <b class="pf">${file}</b><span class="meta" id="metaLine"></span></div>
+  <div class="pt">${tag}</div><div class="rule"></div>`;
+
+function renderAbout(){
+  return phead('about.md', ABOUT.tag) + `
+  <div class="fm">
+    <div class="fmd">---</div>
+    ${ABOUT.fm.map(([k,v]) => `<div class="fr"><span class="k">${k}:</span><span class="v">${
+      k==='status' ? `<span class="grn">●</span> open to work` : h(v)}</span></div>`).join('')}
+    <div class="fmd">---</div>
+  </div>
+  <div class="prose">${ABOUT.paras.map(p => `<p>${p}</p>`).join('')}</div>
+  <div class="h2"><span class="hh">##</span> principles</div>
+  <div class="dl pr">${ABOUT.principles.map(([a,b]) =>
+    `<div class="dr"><span class="k">${a}</span><span class="v dim">${b}</span></div>`).join('')}</div>
+  <div class="h2"><span class="hh">##</span> now<span class="h2r d2">updated 2025-05</span></div>
+  <div class="dl">${ABOUT.now.map(([k,v]) =>
+    `<div class="dr"><span class="k dim">${k}:</span><span class="v">${h(v)}</span></div>`).join('')}</div>`;
+}
+
+function renderProjects(){
+  return phead('projects/', TABS[1].tag) + `
+  <div class="pintro">▸ click a project to expand — or use open &lt;name&gt; in the console</div>
+  ${PROJECTS.map(p => `
+  <article class="proj ${state.open.has(p.id)?'open':''}" data-p="${p.id}">
+    <button class="prow" aria-expanded="${state.open.has(p.id)}">
+      <span class="pc">${state.open.has(p.id)?'▾':'▸'}</span>
+      <span class="pn">${p.name}</span>
+      <span class="pt2">${p.tag}</span>
+      <span class="ps">${p.short}</span>
+      <span class="pst ${p.st}">[${p.st}]</span>
+    </button>
+    <div class="pbody"><div class="pinner">
+      <p class="pdesc">${p.desc}</p>
+      <div class="pd">
+        <span class="k">role</span><span class="v">${p.role}</span>
+        <span class="k">stack</span><span class="v">${p.stack}</span>
+        <span class="k">impact</span><span class="vi">${p.impact}</span>
+        <span class="k">year</span><span class="v dim">${p.year}</span>
+      </div>
+    </div></div>
+  </article>`).join('')}
+  <section id="ach">
+    <div class="h2"><span class="hh">##</span> achievements.log<span class="h2r d2">newest first</span></div>
+    ${ACH.map(a => `<div class="ach-row"><span class="a1">*</span><span class="a2">${a.h}</span>
+      <span class="a3">${a.y}</span><span class="v">${h(a.t)}</span></div>`).join('')}
+    <div class="ach-foot">${ACH.length} entries · 2022 → 2025 · click a project above for context</div>
+  </section>`;
+}
+
+function renderSkills(){
+  const bar = p => `<span class="bf">${'█'.repeat(Math.round(p/10))}</span><span class="br">${'░'.repeat(10-Math.round(p/10))}</span>`;
+  return phead('skills.json', TABS[2].tag) + `
+  ${SKILLS.groups.map(g => `
+    <div class="h2"><span class="hh">##</span> ${g.name}<span class="h2r d2">${g.rows.length} competences</span></div>
+    ${g.rows.map(([n,p,y]) => `<div class="meter" data-si="${h(`${n} — ${p}% · ${y}y (${g.name})`)}" title="click for the log entry">
+      <span class="mn">${n}</span><span class="mb">${bar(p)}</span>
+      <span class="mp">${p}%</span><span class="my">${y}y</span></div>`).join('')}`).join('')}
+  <div class="learn"><span class="acc">▮ learning:</span> ${SKILLS.learning}</div>
+  <div class="snote"># bars are self-assessed — benchmarks available on request</div>`;
+}
+
+function renderContact(){
+  return phead('contact.txt', TABS[3].tag) + `
+  <div class="cbox">
+    <div class="dl dr"><span class="k dim">status:</span><span class="v grn">${CONTACT.status}</span></div>
+    ${CONTACT.rows.map(r => `<div class="dr"><span class="k dim">${r.k}:</span><span class="v">${r.v}${
+      r.copy ? `<button class="copy" data-copy="${h(r.v)}" title="copy ${r.k}">[copy]</button>` : ''
+    }</span></div>`).join('')}
+  </div>
+  <div class="cnote">${CONTACT.note}</div>`;
+}
+
+const PAGES = {
+  about:{file:'about.md',    render:renderAbout},
+  projects:{file:'projects/',render:renderProjects},
+  skills:{file:'skills.json',render:renderSkills},
+  contact:{file:'contact.txt',render:renderContact}
+};
+
+/* ═══════════════ navigation ═══════════════ */
+function go(page, o={}){
+  const same = state.page === page;
+  if (same && !o.anchor){ pane.scrollTo({top:0,behavior:smooth()}); return; }
+  state.page = page;
+  tabsEl.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.page === page));
+  treeEl.querySelectorAll('[data-nav]').forEach(n => n.classList.toggle('on', n.dataset.nav === page));
+  const P = PAGES[page];
+  pageEl.innerHTML = P.render();
+  $('#sbFile').textContent = P.file;
+  if (pageEl.animate) pageEl.animate([{opacity:.3},{opacity:1}], {duration:130});
+  requestAnimationFrame(() => {
+    const m = pageEl.querySelector('#metaLine');
+    if (m) m.textContent = '~ ' + Math.max(1, Math.round(pageEl.offsetHeight/20)) + ' lines';
+  });
+  if (o.anchor){
+    const el = pageEl.querySelector('#'+o.anchor);
+    if (el){
+      setTimeout(() => { el.scrollIntoView({behavior:smooth(), block:'start'});
+        el.classList.add('flashsec'); setTimeout(() => el.classList.remove('flashsec'), 1200); }, 60);
+    }
+  } else pane.scrollTop = 0;
+  if (!o.silent && !same) log('sys', 'open ' + P.file);
+}
+
+function openProject(id, scroll=true){
+  state.open.add(id);
+  if (state.page !== 'projects') go('projects');
+  const art = pageEl.querySelector(`[data-p="${id}"]`);
+  if (art){
+    art.classList.add('open');
+    art.querySelector('.prow').setAttribute('aria-expanded','true');
+    art.querySelector('.pc').textContent = '▾';
+    if (scroll){
+      art.scrollIntoView({behavior:smooth(), block:'nearest'});
+      art.classList.add('flash'); setTimeout(() => art.classList.remove('flash'), 1100);
+    }
+  }
+}
+
+/* ═══════════════ sidebar tree + theme ═══════════════ */
+function buildTree(){
+  let out = '';
+  TREE.forEach((n,i) => {
+    const last = i === TREE.length-1;
+    out += `<button class="tnode" data-nav="${n.nav}"><span class="tg">${last?'└─':'├─'}</span>
+      <span class="tn">${n.n}</span><span class="tm ${n.cls||''}">${n.m}</span></button>`;
+    (n.kids||[]).forEach((k,j) => {
+      const lk = j === n.kids.length-1;
+      const attr = k.ach ? 'data-ach="1"' : `data-proj="${k.proj}"`;
+      out += `<button class="tnode" ${attr}><span class="tg">│ ${lk?'└─':'├─'}</span>
+        <span class="tn">${k.n}</span><span class="tm ${k.cls||''}">${k.m}</span></button>`;
+    });
+  });
+  treeEl.innerHTML = out;
+}
+treeEl.addEventListener('click', e => {
+  const b = e.target.closest('.tnode'); if (!b) return;
+  if (b.dataset.nav)   return go(b.dataset.nav);
+  if (b.dataset.ach)   return go('projects', {anchor:'ach'});
+  if (b.dataset.proj)  return openProject(b.dataset.proj);
+});
+
+const THEMES = ['amber','phosphor','paper'];
+function buildThemeRow(){
+  $('#themeRow').innerHTML = THEMES.map(t =>
+    `<button class="thm ${t===state.theme?'on':''}" data-thm="${t}">${t}</button>`).join('');
+}
+ $('#themeRow').addEventListener('click', e => {
+  const b = e.target.closest('[data-thm]'); if (b) setTheme(b.dataset.thm);
+});
+function setTheme(name, o={}){
+  if (!THEMES.includes(name)) return;
+  state.theme = name;
+  document.body.dataset.theme = name;
+  $('#sbTheme').textContent = name;
+  document.querySelectorAll('.thm').forEach(b => b.classList.toggle('on', b.dataset.thm === name));
+  try { localStorage.setItem('pf-theme', name); } catch(e){}
+  if (!o.silent) log('ok', 'theme ▸ ' + name);
+}
+function cycleTheme(){ setTheme(THEMES[(THEMES.indexOf(state.theme)+1) % THEMES.length]); }
+
+/* ═══════════════ tabs ═══════════════ */
+tabsEl.addEventListener('click', e => {
+  const t = e.target.closest('.tab'); if (t) go(t.dataset.page);
+});
+const prevTab = () => go(TABS[(TABS.findIndex(t=>t.id===state.page)+TABS.length-1)%TABS.length].id);
+const nextTab = () => go(TABS[(TABS.findIndex(t=>t.id===state.page)+1)%TABS.length].id);
+
+/* ═══════════════ in-page interactions ═══════════════ */
+pageEl.addEventListener('click', e => {
+  const c = e.target.closest('[data-copy]');
+  if (c) return doCopy(c);
+  if (e.target.closest('[data-cv]'))
+    return log('ok', "cv request logged — one email to hello@avega.dev and it's yours");
+  const sk = e.target.closest('[data-si]');
+  if (sk) return log('out', 'skill ▸ ' + h(sk.dataset.si));
+  const pr = e.target.closest('.prow');
+  if (pr){
+    const art = pr.closest('.proj'), id = art.dataset.p;
+    const open = art.classList.toggle('open');
+    open ? state.open.add(id) : state.open.delete(id);
+    pr.setAttribute('aria-expanded', open);
+    pr.querySelector('.pc').textContent = open ? '▾' : '▸';
+  }
+});
+function doCopy(btn){
+  const val = btn.dataset.copy;
+  const done = () => {
+    btn.textContent = '[copied]'; btn.classList.add('copied');
+    log('ok', 'copied ▸ ' + h(val));
+    setTimeout(() => { btn.textContent = '[copy]'; btn.classList.remove('copied'); }, 1400);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText)
+    navigator.clipboard.writeText(val).then(done).catch(() => fallback());
+  else fallback();
+  function fallback(){
+    const ta = document.createElement('textarea');
+    ta.value = val; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); }
+    catch(e){ log('err', 'clipboard blocked — select & copy manually'); }
+    ta.remove();
+  }
+}
+
+/* ═══════════════ command input ═══════════════ */
+cmd.addEventListener('input', () => { mirror.textContent = cmd.value; });
+cmd.addEventListener('focus', () => { document.body.classList.add('cmd-on'); $('#sbMode').textContent='COMMAND'; });
+cmd.addEventListener('blur',  () => { document.body.classList.remove('cmd-on'); $('#sbMode').textContent='NORMAL'; });
+cmd.addEventListener('keydown', e => {
+  if (e.key === 'Enter'){
+    const v = cmd.value; cmd.value=''; mirror.textContent=''; hIdx=-1;
+    if (v.trim()) exec(v);
+  } else if (e.key === 'ArrowUp'){
+    if (hist.length){ hIdx = hIdx < 0 ? hist.length-1 : Math.max(0, hIdx-1);
+      cmd.value = hist[hIdx]; mirror.textContent = cmd.value; }
+    e.preventDefault();
+  } else if (e.key === 'ArrowDown'){
+    if (hIdx >= 0){ hIdx++; if (hIdx >= hist.length){ hIdx=-1; cmd.value=''; } else cmd.value = hist[hIdx];
+      mirror.textContent = cmd.value; }
+    e.preventDefault();
+  } else if (e.key === 'Escape'){ cmd.blur(); e.preventDefault(); }
+});
+ $('#cmdrow').addEventListener('click', () => cmd.focus());
+
+/* ═══════════════ global keys ═══════════════ */
+document.addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (!overlay.classList.contains('open')){
+    if (document.activeElement === cmd) return;
+    const k = e.key;
+    if (k === ':' || k === '/'){
+      e.preventDefault(); cmd.focus();
+      if (k === ':'){ cmd.value=':'; mirror.textContent=':'; }
+      return;
+    }
+    if (k === '?'){ e.preventDefault(); return openHelp(); }
+    if (k >= '1' && k <= '4') return go(TABS[+k-1].id);
+    if (k === 'j' || k === 'ArrowDown'){ pane.scrollBy({top:34,behavior:smooth()}); e.preventDefault(); return; }
+    if (k === 'k' || k === 'ArrowUp'){ pane.scrollBy({top:-34,behavior:smooth()}); e.preventDefault(); return; }
+    if (k === 'G' || k === 'End'){ pane.scrollTop = pane.scrollHeight; return; }
+    if (k === 'Home'){ pane.scrollTop = 0; return; }
+    if (k === 'g'){
+      if (gg){ pane.scrollTop = 0; gg = false; }
+      else { gg = true; setTimeout(() => gg = false, 600); }
+      return;
+    }
+    if (k === 'h') return prevTab();
+    if (k === 'l') return nextTab();
+    if (k === 't') return cycleTheme();
+  } else {
+    if (e.key === 'Escape' || e.key === '?'){ e.preventDefault(); closeOverlay(); }
+  }
+});
+
+/* ═══════════════ command engine ═══════════════ */
+function exec(raw){
+  const shown = raw.trim();
+  const clean = shown.replace(/^[:/]+/,'').trim();
+  if (!clean) return;
+  if (hist[hist.length-1] !== clean) hist.push(clean);
+  log('cmd', h(shown.replace(/^[:]+/,'').trim() || shown));
+  const [c, ...rest] = clean.split(/\s+/);
+  const cmd0 = c.toLowerCase(), arg = rest.join(' ');
+  switch(cmd0){
+    case 'help': case 'h': openHelp(); break;
+    case 'ls': cmdLs(arg); break;
+    case 'cd': cmdCd(arg); break;
+    case 'cat': cmdCat(arg); break;
+    case 'open': case 'e': cmdOpen(arg); break;
+    case 'about': case 'projects': case 'skills': case 'contact': go(cmd0); break;
+    case 'whoami':
+      outs(['adrián vega — senior full-stack developer (bucharest · utc+2)',
+            '7+ years · typescript / go / postgres — end to end',
+            'now: ledgerline v2 · learning rust',
+            'tl;dr — open projects/, or run neofetch']); break;
+    case 'theme': cmdTheme(arg); break;
+    case 'grep': cmdGrep(arg); break;
+    case 'echo': log('out', h(arg)); break;
+    case 'history':
+      log('out', hist.slice(-15).map((x,i) => String(i+1).padStart(3,' ') + '  ' + h(x)).join('\n') || '(empty)'); break;
+    case 'clear': entries.length = 0; conBody.innerHTML=''; log('sys','console cleared'); break;
+    case 'date': log('out', h(new Date().toLocaleString('en-GB',{dateStyle:'full',timeStyle:'medium'}))); break;
+    case 'uptime': {
+      const s = Math.floor((Date.now()-state.bootAt)/1000);
+      log('out', `up ${Math.floor(s/60)}m ${s%60}s · ${hist.length} commands · load: coffee`); break; }
+    case 'pwd': log('out', '/home/avega/portfolio'); break;
+    case 'neofetch': openNeofetch(); break;
+    case 'cowsay': cmdCow(arg); break;
+    case 'sudo':
+      if ((rest[0]||'').toLowerCase() === 'hire-me') hireSeq();
+      else log('err','usage: sudo hire-me'); break;
+    case 'hire-me': log('err','permission denied — are you sure you\'re not root? try sudo hire-me'); break;
+    case 'q':  log('out','E37: no write since last change — and no :q out of a portfolio. try :contact'); break;
+    case 'w':  log('out','E45: buffer is read-only — the work is already public'); break;
+    case 'wq': log('out','E45: nothing to save. see :w, then :q, then :contact'); break;
+    case 'q!': log('out','force-quit blocked — this portfolio follows you now. (try :contact)'); break;
+    case 'exit': log('out','there is no exit. only :contact.'); break;
+    default: log('err', h(`command not found: ${c}`) + ' <span class="d2">(type help)</span>');
+  }
+}
+function cmdLs(a){
+  a = (a||'').replace(/\/$/,'');
+  if (!a || a === '~' || a === '.')
+    return log('out', '<span class="acc">projects/</span>  about.md  skills.json  contact.txt');
+  if (a === 'projects')
+    return log('out', 'achievements.log  dispatchr  formforge  ledgerline  pulseboard  syncroom <span class="d2">(open &lt;name&gt; to expand)</span>');
+  log('err', `ls: ${h(a)}: no such directory`);
+}
+function cmdCd(a){
+  a = (a||'').replace(/\/$/,'');
+  if (!a || a === '~' || a === '..' || a === 'home') return go('about');
+  if (a === 'projects') return go('projects');
+  if (a.startsWith('projects/')) return cmdOpen(a.slice(9));
+  const t = matchTarget(a);
+  if (t) return applyTarget(t);
+  log('err', `cd: no such directory: ${h(a)}`);
+}
+function cmdOpen(a){
+  if (!a) return log('err','open what? — try open ledgerline');
+  const t = matchTarget(a);
+  t ? applyTarget(t) : log('err', `no such buffer: ${h(a)} (try ls)`);
+}
+function matchTarget(name){
+  name = name.toLowerCase().replace(/\.md$|\.json$|\.txt$|\.log$/,'').replace(/\/$/,'');
+  if (name === 'ach' || name === 'achievements' || name === 'achievements.log')
+    return {page:'projects', anchor:'ach'};
+  const page = TABS.find(t => t.id === name);
+  if (page) return {page:page.id};
+  const p = PROJECTS.find(p => p.id === name || p.name.toLowerCase() === name);
+  if (p) return {proj:p.id};
+  return null;
+}
+function applyTarget(t){
+  if (t.proj) openProject(t.proj);
+  else go(t.page, {anchor:t.anchor});
+}
+function cmdCat(a){
+  if (!a) return log('err','usage: cat <file>');
+  a = a.toLowerCase();
+  let file = null;
+  if (a === 'about' || a === 'about.md') file = 'about.md';
+  if (a === 'skills' || a === 'skills.json') file = 'skills.json';
+  if (a === 'contact' || a === 'contact.txt') file = 'contact.txt';
+  if (a === 'projects' || a === 'projects/') file = 'projects/achievements.log';
+  const p = PROJECTS.find(p => p.id === a || p.name.toLowerCase() === a);
+  if (p) file = 'projects/' + p.id;
+  if (!file) return log('err', `cat: ${h(a)}: no such file`);
+  const rows = CORPUS.filter(x => x.f === file);
+  log('out', rows.map((r,i) =>
+    `<span class="d2">${String(i+1).padStart(3,' ')}│</span> ${h(r.t)}`).join('\n'));
+}
+function cmdTheme(a){
+  if (!a) return log('out', `themes: amber · phosphor · paper <span class="d2">— current: ${state.theme}</span>`);
+  THEMES.includes(a) ? setTheme(a) : log('err', `unknown theme: ${h(a)} — try amber · phosphor · paper`);
+}
+function cmdGrep(q){
+  if (!q) return log('out','usage: grep <pattern> — searches every buffer');
+  const ql = q.toLowerCase();
+  const hits = CORPUS.filter(x => x.t.toLowerCase().includes(ql));
+  if (!hits.length) return log('err', `no matches for "${h(q)}" (exit 1)`);
+  const shown = hits.slice(0,12);
+  log('out', shown.map(x => `<span class="tl">${h(x.f)}</span><span class="d2">:</span>${h(x.t)}`).join('\n')
+    + (hits.length > 12 ? `\n<span class="d2">… ${hits.length-12} more — narrow the query</span>` : ''));
+}
+function cmdCow(m){
+  m = (m || 'hire me').slice(0,44);
+  const w = m.length + 2;
+  const lines = [
+    ` ${'_'.repeat(w)}`, `< ${h(m)} >`, ` ${'-'.repeat(w)}`,
+    '        \\   ^__^',
+    '         \\  (oo)\\_______',
+    '            (__)\\       )\\/\\',
+    '                ||----w |',
+    '                ||     ||'];
+  lines.forEach(l => log('raw', l));
+}
+function hireSeq(){
+  if (state.hiring) return; state.hiring = true;
+  log('out','[sudo] password for visitor: ********');
+  setTimeout(() => log('ok','access granted — routing request'), 500);
+  setTimeout(() => { log('ok','opening contact.txt …'); go('contact'); state.hiring = false; }, 1200);
+}
+
+/* ═══════════════ overlays ═══════════════ */
+function openDlg(title, sub, html){
+  dlgTitle.textContent = title; dlgSub.textContent = sub;
+  dlgBody.innerHTML = html;
+  overlay.classList.add('open');
+}
+function closeOverlay(){ overlay.classList.remove('open'); }
+ $('#dlgClose').addEventListener('click', closeOverlay);
+overlay.addEventListener('click', e => { if (e.target === overlay) closeOverlay(); });
+
+function openHelp(){
+  openDlg('help','portfolio.sh — everything is clickable too', `
+  <div class="help-grid">
+    <div>
+      <div class="h2 sm"><span class="d2">##</span> commands</div>
+      ${[
+        ['ls [dir]','list buffers — ls projects for details'],
+        ['cat <file>','print a buffer with line numbers'],
+        ['cd <page>','navigate — cd projects'],
+        ['open <x>','jump to a page or project, expanded'],
+        ['theme <t>','amber · phosphor · paper'],
+        ['grep <q>','search across every buffer'],
+        ['whoami','the short version'],
+        ['neofetch','system card, live values'],
+        ['cowsay <t>','essential infrastructure'],
+        ['history','past commands'],
+        ['clear','wipe the console']
+      ].map(([a,b]) => `<div class="hc"><b>${a}</b><span>${b}</span></div>`).join('')}
+    </div>
+    <div>
+      <div class="h2 sm"><span class="d2">##</span> keys</div>
+      ${[
+        [': or /','focus the command line'],
+        ['1 – 4','switch tabs'],
+        ['h / l','previous / next tab'],
+        ['j / k','scroll the buffer'],
+        ['g g / G','top / bottom'],
+        ['t','cycle theme'],
+        ['?','this panel'],
+        ['esc','close panel · blur input']
+      ].map(([a,b]) => `<div class="hc"><b>${a}</b><span>${b}</span></div>`).join('')}
+      <div class="help-note">also lurking: whoami · uptime · date · echo · pwd · :q · sudo hire-me</div>
+    </div>
+  </div>`);
+}
+
+const box = lines => {
+  const w = Math.max(...lines.map(l => l.length));
+  return [`┌${'─'.repeat(w+2)}┐`, ...lines.map(l => `│ ${l.padEnd(w)} │`), `└${'─'.repeat(w+2)}┘`];
+};
+function openNeofetch(){
+  const s = Math.floor((Date.now()-state.bootAt)/1000);
+  const art = box([
+    '▮ portfolio.sh','',
+    ' ~ ❯ whoami',' adrián vega',
+    ' ~ ❯ role',' senior full-stack dev',
+    ' ~ ❯ status',' ● open to work _'
+  ]).join('\n');
+  openDlg('neofetch','system card — real values, read at open time', `
+    <div class="nf">
+      <pre class="nf-art">${h(art)}</pre>
+      <div class="nf-i">
+        <span class="k">user</span><span class="v">adrián vega</span>
+        <span class="k">role</span><span class="v">senior full-stack</span>
+        <span class="k">host</span><span class="v">portfolio.sh v2.1</span>
+        <span class="k">uptime</span><span class="v">${Math.floor(s/60)}m ${s%60}s</span>
+        <span class="k">shell</span><span class="v">portfolio.sh</span>
+        <span class="k">theme</span><span class="v">${state.theme}</span>
+        <span class="k">viewport</span><span class="v">${innerWidth}×${innerHeight}</span>
+        <span class="k">buffers</span><span class="v">4 tabs · ${PROJECTS.length} projects</span>
+        <span class="k">location</span><span class="v">Bucharest · UTC+2</span>
+        <span class="k">status</span><span class="v grn">● open to work</span>
+      </div>
+    </div>`);
+}
+
+/* ═══════════════ clock ═══════════════ */
+function buch(){
+  try { return new Date().toLocaleTimeString('en-GB',{timeZone:'Europe/Bucharest'}); }
+  catch(e){ return fmtTime(new Date()); }
+}
+setInterval(() => {
+  const now = new Date(), t = fmtTime(now);
+  $('#tbClock').textContent = t;
+  $('#sbClock').textContent = t;
+  $('#tbDate').textContent = now.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short'});
+  const z = pageEl.querySelector('#tzLive'); if (z) z.textContent = buch();
+}, 1000);
+
+/* ═══════════════ console clear + boot ═══════════════ */
+ $('#clearBtn').addEventListener('click', () => {
+  entries.length = 0; conBody.innerHTML=''; log('sys','console cleared');
+});
+
+function boot(){
+  requestAnimationFrame(() => document.body.classList.remove('pre'));
+  const lines = [
+    ['sys','portfolio.sh v2.1.0 — booting'],
+    ['sys','mount /home/avega … ok'],
+    ['sys','index 4 buffers · 6 projects · grep index … ok'],
+    ['sys','themes ▸ amber · phosphor · paper … ok'],
+    ['ok',  `ready in ${Math.round(performance.now())} ms — this console is real. type help`]];
+  lines.forEach((l,i) => setTimeout(() => log(l[0], l[1]), 250 + i*180));
+}
+
+/* ═══════════════ init ═══════════════ */
+(function init(){
+  buildTree(); buildThemeRow();
+  const saved = (() => { try { return localStorage.getItem('pf-theme'); } catch(e){ return null; } })();
+  if (saved && THEMES.includes(saved)) setTheme(saved, {silent:true});
+  go('about', {silent:true});
+  boot();
+  document.fonts && document.fonts.ready.then(() => { // recalc line counts once the mono font lands
+    const m = pageEl.querySelector('#metaLine');
+    if (m) m.textContent = '~ ' + Math.max(1, Math.round(pageEl.offsetHeight/20)) + ' lines';
+  });
+})();
+</script>
+</body>
+</html>
