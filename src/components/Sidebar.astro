@@ -24,10 +24,10 @@ const children = [...PROJECTS].sort((a, b) => a.id.localeCompare(b.id));
           <span class="tn">{p.name}</span><span class="tm st-{p.st}">{p.st}</span>
         </a>
       ))}
-      <a class:list={['tnode', { on: active === 'skills' }]} href="/skills/">
+      <a class:list={['tnode', { on: active === 'skills' }]} href="/portfolio-sh/skills/">
         <span class="tg">├─</span><span class="tn">skills.json</span><span class="tm">1kB</span>
       </a>
-      <a class:list={['tnode', { on: active === 'contact' }]} href="/contacts/">
+      <a class:list={['tnode', { on: active === 'contact' }]} href="/portfolio-sh/contacts/">
         <span class="tg">└─</span><span class="tn">contact.txt</span><span class="tm">1kB</span>
       </a>
     </div>
