@@ -1,6 +1,10 @@
 ---
+import CmdRow from "../components/CmdRow.astro";
+import Console from "../components/Console.astro";
+import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
 import Navigation from "../components/Navigation.astro";
+import Sidebar from "../components/Sidebar.astro";
 import "../global.css";
 ---
 
@@ -24,7 +28,13 @@ import "../global.css";
     <div class="app">
       <Header />
       <Navigation />
-      <slot />
+      <div class="mid">
+        <Sidebar />
+        <slot />
+      </div>
+      <Console />
+      <CmdRow />
+      <Footer />
     </div>
   </body>
 </html>

@@ -1,33 +1,10 @@
 ---
 import Layout from "../layouts/Layout.astro";
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
 <Layout>
   <div class="app">
     <div class="mid">
-      <aside class="sidebar">
-        <div class="side-sec">
-          <div class="sec-label">explorer</div>
-          <div class="tree" id="tree"></div>
-        </div>
-        <div class="side-sec">
-          <div class="sec-label">session</div>
-          <div class="sess">
-            <div class="s1">adrián vega</div>
-            <div class="d2">senior full-stack</div>
-            <div class="d2">7y · remote · UTC+2</div>
-            <div class="grn s1">● open to work</div>
-          </div>
-        </div>
-        <div class="side-sec">
-          <div class="sec-label">theme</div>
-          <div class="theme-row" id="themeRow"></div>
-        </div>
-      </aside>
-
       <main class="pane" id="pane">
         <div class="col">
           <div id="page"></div>
@@ -35,47 +12,6 @@ import Layout from "../layouts/Layout.astro";
         </div>
       </main>
     </div>
-
-    <section class="console">
-      <div class="console-head">
-        <span class="sec-label">console</span>
-        <span class="ch-dim">· output &amp; activity</span>
-        <button class="linkbtn" id="clearBtn">[clear]</button>
-      </div>
-      <div class="console-body" id="consoleBody" role="log" aria-live="polite">
-      </div>
-    </section>
-
-    <div class="cmdrow" id="cmdrow" title="command line — type help">
-      <span class="prompt">❯</span>
-      <div class="cmd-wrap" id="cmdWrap">
-        <span class="mirror" id="mirror"></span><span
-          class="caret"
-          aria-hidden="true"></span>
-        <input
-          id="cmd"
-          autocomplete="off"
-          spellcheck="false"
-          aria-label="command input"
-        />
-      </div>
-      <span class="cmd-hint" id="cmdHint"
-        >type help — or press ? for shortcuts · mouse works too</span
-      >
-    </div>
-
-    <footer class="statusbar">
-      <span class="mode" id="sbMode">NORMAL</span>
-      <span class="sb-file" id="sbFile">about.md</span>
-      <span class="sb-keys"
-        >: cmd · j/k scroll · 1-4 tabs · t theme · ? help</span
-      >
-      <span class="sb-right">
-        <span class="acc" id="sbTheme">amber</span>
-        <span class="dim" id="sbClock">--:--:--</span>
-        <span class="d2" id="sbTrace">trace 1a16a8b7</span>
-      </span>
-    </footer>
   </div>
 
   <div class="overlay" id="overlay">
@@ -92,21 +28,11 @@ import Layout from "../layouts/Layout.astro";
 
   <script>
     import { ABOUT, ACH, CONTACT, PROJECTS, SKILLS, TABS, TREE } from "../data";
-    import {$,h,fmtTime,smooth,} from '../shared'
-    
-    /* ═══════════════ data — single source of truth (pages, grep, cat all read this) ═══════════════ */
+    import { $, h, fmtTime, smooth } from "../shared";
+    import { THEMES } from "../shared/const";
+    import { hist, state } from "../shared/state";
 
-    /* ═══════════════ state ═══════════════ */
-    const state = {
-      page: "about",
-      theme: "amber",
-      open: new Set(["ledgerline"]),
-      bootAt: Date.now(),
-      hiring: false,
-    };
-    const hist = [];
-    let hIdx = -1,
-      gg = false;
+    /* ═══════════════ data — single source of truth (pages, grep, cat all read this) ═══════════════ */
 
     /* ═══════════════ DOM refs ═══════════════ */
     const cmd = $("#cmd"),
@@ -114,7 +40,6 @@ import Layout from "../layouts/Layout.astro";
       pane = $("#pane"),
       pageEl = $("#page"),
       conBody = $("#consoleBody"),
-      treeEl = $("#tree"),
       tabsEl = $("#tabs"),
       overlay = $("#overlay"),
       dlgTitle = $("#dlgTitle"),
@@ -191,7 +116,7 @@ import Layout from "../layouts/Layout.astro";
     })();
 
     /* ═══════════════ page renderers ═══════════════ */
-    const phead = (file, tag) => `
+    const phead = (file: string, tag: string) => `
   <div class="ph"><span class="d2">#</span> <b class="pf">${file}</b><span class="meta" id="metaLine"></span></div>
   <div class="pt">${tag}</div><div class="rule"></div>`;
 
@@ -369,58 +294,6 @@ import Layout from "../layouts/Layout.astro";
           setTimeout(() => art.classList.remove("flash"), 1100);
         }
       }
-    }
-
-    /* ═══════════════ sidebar tree + theme ═══════════════ */
-    function buildTree() {
-      let out = "";
-      TREE.forEach((n, i) => {
-        const last = i === TREE.length - 1;
-        out += `<button class="tnode" data-nav="${n.nav}"><span class="tg">${last ? "└─" : "├─"}</span>
-      <span class="tn">${n.n}</span><span class="tm ${n.cls || ""}">${n.m}</span></button>`;
-        (n.kids || []).forEach((k, j) => {
-          const lk = j === n.kids.length - 1;
-          const attr = k.ach ? 'data-ach="1"' : `data-proj="${k.proj}"`;
-          out += `<button class="tnode" ${attr}><span class="tg">│ ${lk ? "└─" : "├─"}</span>
-        <span class="tn">${k.n}</span><span class="tm ${k.cls || ""}">${k.m}</span></button>`;
-        });
-      });
-      treeEl.innerHTML = out;
-    }
-    treeEl.addEventListener("click", (e) => {
-      const b = e.target.closest(".tnode");
-      if (!b) return;
-      if (b.dataset.nav) return go(b.dataset.nav);
-      if (b.dataset.ach) return go("projects", { anchor: "ach" });
-      if (b.dataset.proj) return openProject(b.dataset.proj);
-    });
-
-    const THEMES = ["amber", "phosphor", "paper"];
-    function buildThemeRow() {
-      $("#themeRow").innerHTML = THEMES.map(
-        (t) =>
-          `<button class="thm ${t === state.theme ? "on" : ""}" data-thm="${t}">${t}</button>`,
-      ).join("");
-    }
-    $("#themeRow").addEventListener("click", (e) => {
-      const b = e.target.closest("[data-thm]");
-      if (b) setTheme(b.dataset.thm);
-    });
-    function setTheme(name, o = {}) {
-      if (!THEMES.includes(name)) return;
-      state.theme = name;
-      document.body.dataset.theme = name;
-      $("#sbTheme").textContent = name;
-      document
-        .querySelectorAll(".thm")
-        .forEach((b) => b.classList.toggle("on", b.dataset.thm === name));
-      try {
-        localStorage.setItem("pf-theme", name);
-      } catch (e) {}
-      if (!o.silent) log("ok", "theme ▸ " + name);
-    }
-    function cycleTheme() {
-      setTheme(THEMES[(THEMES.indexOf(state.theme) + 1) % THEMES.length]);
     }
 
     /* ═══════════════ tabs ═══════════════ */
@@ -959,8 +832,6 @@ import Layout from "../layouts/Layout.astro";
       );
     }
 
-    
-
     /* ═══════════════ console clear + boot ═══════════════ */
     $("#clearBtn").addEventListener("click", () => {
       entries.length = 0;
@@ -985,17 +856,6 @@ import Layout from "../layouts/Layout.astro";
 
     /* ═══════════════ init ═══════════════ */
     (function init() {
-      buildTree();
-      buildThemeRow();
-      const saved = (() => {
-        try {
-          return localStorage.getItem("pf-theme");
-        } catch (e) {
-          return null;
-        }
-      })();
-      if (saved && THEMES.includes(saved)) setTheme(saved, { silent: true });
-      go("about", { silent: true });
       boot();
       document.fonts &&
         document.fonts.ready.then(() => {

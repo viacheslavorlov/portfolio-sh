@@ -1,7 +1,7 @@
 export const ABOUT = {
   tag: 'who i am, minus the buzzwords',
-  fm: [['name', 'Adrián Vega'], ['role', 'senior full-stack developer'], ['location', 'Bucharest · remote (UTC+2)'],
-  ['experience', '7+ years · 40+ releases'], ['status', '● open to work']],
+  fm: [['name', 'Adrián Vega'], ['role', 'senior full-stack developer'], ['location', 'Velikiy Novgorod · remote (UTC+3)'],
+  ['experience', '5+ years · 60+ releases'], ['status', '● open to work']],
   paras: [
     `I build products end to end — from the first schema migration to the last loading skeleton. Over the last seven years I've shipped SaaS platforms, internal tools and open-source libraries, usually as the person bridging "we need it yesterday" and "it must not fall over in production".`,
     `TypeScript everywhere, Go where it counts, Postgres underneath. I care about small honest interfaces, p95s under 100 ms, tests that fail loudly, and deploys that are boring. When I'm not shipping I'm building TUIs nobody asked for — this portfolio included.`],
@@ -78,7 +78,7 @@ export const CONTACT = {
     { k: 'email', v: 'hello@avega.dev', copy: true },
     { k: 'github', v: 'github.com/avega', copy: true },
     { k: 'location', v: 'Bucharest, RO' },
-    { k: 'timezone', v: 'UTC+2 · local <span id="tzLive">--:--:--</span>', live: true },
+    { k: 'timezone', v: 'UTC+3 · local <span id="tzLive">--:--:--</span>', live: true },
     { k: 'response', v: '< 24h — usually much faster' },
     { k: 'cv', v: 'on request <button class="copy" data-cv title="ask for the CV">[ask]</button>' }
   ],

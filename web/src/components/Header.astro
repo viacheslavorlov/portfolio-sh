@@ -11,11 +11,13 @@
     </span>
   </header>
   <script>
+import { $, fmtTime } from "../shared";
+
     /* ═══════════════ clock ═══════════════ */
     function buch() {
       try {
-        return new Date().toLocaleTimeString("en-GB", {
-          timeZone: "Europe/Bucharest",
+        return new Date().toLocaleTimeString("ru-RU", {
+          timeZone: "Europe/Moscow",
         });
       } catch (e) {
         return fmtTime(new Date());
@@ -31,7 +33,7 @@
         day: "2-digit",
         month: "short",
       });
-      const z = pageEl.querySelector("#tzLive");
+      const z = document.querySelector("#tzLive");
       if (z) z.textContent = buch();
     }, 1000);
   </script>
